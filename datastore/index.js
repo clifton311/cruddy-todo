@@ -103,14 +103,31 @@ exports.update = (id, text, callback) => {
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  // var item = items[id];
+  // delete items[id];
+  // if (!item) {
+  //   // report an error if item not found
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   callback();
+  // }
+
+  //use the fs.unlink method - Asynchronously removes a file or symbolic link
+  //check if path exists, only unlink when path exists
+  var textPath = path.join(exports.dataDir, id + '.txt');
+  fs.stat(textPath, function (err, stats) {
+    if (err)  {
+      callback(err);
+    } else {
+      fs.unlink(textPath, function (err){
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, stats);
+        }
+      });  
+    }
+  });
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
