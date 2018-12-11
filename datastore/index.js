@@ -17,7 +17,7 @@ exports.create = (text, callback) => {
     } else {
       //./datastore/data/0001.txt
       var textPath = path.join(exports.dataDir, counterString + '.txt');
-      fs.writeFile(textPath, text, function(err){
+      fs.writeFile( textPath, text, function(err){
         if (err) {
           callback(err);
         } else {
@@ -44,7 +44,7 @@ exports.readAll = (callback) => {
       callback(err);
     } else {
       _.each(files, function(fileName) {
-        var id = fileName.split(".txt")[0];
+        var id = fileName.split('.txt')[0];
         data.push({id: id, text: id});
       });
       callback(null, data);
@@ -53,12 +53,25 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  // var text = items[id];
+  // if (!text) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   callback(null, { id, text });
+  // }
+
+  //id = 0001, read content from path 'exports.dataDir + 0001.txt'
+  //fs.readFile(path, callback)
+  //handle when path doesn't exist
+  //when successful, callback(null, { id, text });
+  var textPath = path.join(exports.dataDir, id + '.txt');
+  fs.readFile(textPath, 'utf8' , function (err, text){
+    if (err) {
+      callback(err);
+    } else {
+      callback(null,{id, text});
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
