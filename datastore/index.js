@@ -3,7 +3,7 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
-var items = {};
+//var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
@@ -75,13 +75,31 @@ exports.readOne = (id, callback) => {
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  // var item = items[id];
+  // if (!item) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   items[id] = text;
+  //   callback(null, { id, text });
+  // }
+
+  //use the fs.writefile method to edit the todo
+  //check if path exists, only writeFile when path exists
+
+  var textPath = path.join(exports.dataDir, id + '.txt');
+  fs.stat(textPath, function(err, stats) {
+    if (err) {
+      callback(err);
+    } else {
+      fs.writeFile( textPath, text, function(err){
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, {id, text});
+        }
+      });
+    }
+  });
 };
 
 exports.delete = (id, callback) => {
