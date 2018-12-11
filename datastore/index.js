@@ -30,10 +30,26 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
   var data = [];
-  _.each(items, (text, id) => {
-    data.push({ id, text });
+  // _.each(items, (text, id) => {
+  //   data.push({ id, text });
+  // });
+  // callback(null, data);
+
+  //read all file names in ./datastore/data directory
+  //push the file name obj into data array {id: '0001', text: '0001'}
+  //0001.txt => 0001
+  //files = [0001.txt, 0002.txt...]
+  fs.readdir(exports.dataDir, function(err, files) {
+    if (err) {
+      callback(err);
+    } else {
+      _.each(files, function(fileName) {
+        var id = fileName.split(".txt")[0];
+        data.push({id: id, text: id});
+      });
+      callback(null, data);
+    }
   });
-  callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
