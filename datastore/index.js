@@ -39,6 +39,7 @@ exports.readAll = (callback) => {
   //push the file name obj into data array {id: '0001', text: '0001'}
   //0001.txt => 0001
   //files = [0001.txt, 0002.txt...]
+  //=============below is the nodestyle callback code=============
   fs.readdir(exports.dataDir, function(err, files) {
     if (err) {
       callback(err);
@@ -50,6 +51,14 @@ exports.readAll = (callback) => {
       callback(null, data);
     }
   });
+  //==============below is the Promise code=======================
+  //fs.readdirAsync to get all file names => ['0001.txt',...]
+  //.then make an array of file links using path.join => dirname + filename => [../0001.txt, ...]
+  //make each file path into a fs.readFile promise => [fs.readFileAsync(path), ...]
+  //Promise.all of the fs.readFile asyncs
+  //after each fs.readFile, push file content string into data
+  //.then callback the data array
+
 };
 
 exports.readOne = (id, callback) => {
