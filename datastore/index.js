@@ -3,34 +3,64 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 const Promise = require('bluebird');
-const readdirAsync = Promise.promisify(fs.readdir);
-const readFileAsync = Promise.promisify(fs.readFile);
-
+const getNextUniqueIdAsync = Promise.promisify(counter.getNextUniqueId);
+Promise.promisifyAll(fs);
 
 //var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  // var id = counter.getNextUniqueId();
-  // items[id] = text;
-  // callback(null, { id, text });
-  counter.getNextUniqueId(function(err, counterString) {
-    if (err) {
-      callback(err);
-    } else {
-      //./datastore/data/0001.txt
-      var textPath = path.join(exports.dataDir, counterString + '.txt');
-      fs.writeFile( textPath, text, function(err){
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, {id: counterString, text: text});
-        }
+  // // var id = counter.getNextUniqueId();
+  // // items[id] = text;
+  // // callback(null, { id, text });
+  //=============below is the nodestyle callback code================
+  // counter.getNextUniqueId(function(err, counterString) {
+  //   if (err) {
+  //     callback(err);
+  //   } else {
+  //     //./datastore/data/0001.txt
+  //     var textPath = path.join(exports.dataDir, counterString + '.txt');
+  //     fs.writeFile( textPath, text, function(err){
+  //       if (err) {
+  //         callback(err);
+  //       } else {
+  //         callback(null, {id: counterString, text: text});
+  //       }
+  //     });
+  //   }
+  // });
+  
+  //========================== exports.create Using Promises=========================
+    return getNextUniqueIdAsync()
+      .then(function (counterString) {
+      
+        var textPath = path.join(exports.dataDir, counterString + '.txt');
+        return new Promise(function (resolve, reject) {
+          fs.writeFile(textPath, text, (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve({id : counterString});
+            }
+          });
+        });
+      })
+      .then(function (textObj) {
+        textObj.text = text;
+        callback(null, textObj);
+      })
+      .catch(function (err) {
+        console.log( 'Error ' + err);
       });
-    }
-  });
+
+  //return counter
+  //.then(callback) 
+  //define the textpath
+  //promise the fs.writeFile
+  //then callback passing in the text and id
 };
+
 
 exports.readAll = (callback) => {
   var data = [];
@@ -62,12 +92,12 @@ exports.readAll = (callback) => {
   //Promise.all of the fs.readFile asyncs
   //after each fs.readFile, push file content string into data
   //.then callback the data array
-  return readdirAsync(exports.dataDir)
+  return fs.readdirAsync(exports.dataDir)
     .then(function(fileNames) {
       return Promise.all(fileNames.map(function(fileName) {
         var filePath = path.join(exports.dataDir, fileName); //path: .././0001.txt
         var id = fileName.split('.txt')[0]; //id: 0001
-        return readFileAsync(filePath, 'utf8') //returns body of the file in a string: 'todo 1'
+        return fs.readFileAsync(filePath, 'utf8') //returns body of the file in a string: 'todo 1'
           .then(function(text) {
             data.push({id: id, text: text});
           });

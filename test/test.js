@@ -92,6 +92,7 @@ describe('todos', () => {
       todos.create(todoText, (err, todo) => {
         const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todo.id}.txt`)).toString();
         expect(todoFileContents).to.equal(todoText);
+        
         done();
       });
     });
