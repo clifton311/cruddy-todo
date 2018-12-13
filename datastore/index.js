@@ -2,6 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
+const readdirAsync = Promise.promisify(fs.readdir);
+const readFileAsync = Promise.promisify(fs.readFile);
+
 
 //var items = {};
 
@@ -40,17 +44,17 @@ exports.readAll = (callback) => {
   //0001.txt => 0001
   //files = [0001.txt, 0002.txt...]
   //=============below is the nodestyle callback code=============
-  fs.readdir(exports.dataDir, function(err, files) {
-    if (err) {
-      callback(err);
-    } else {
-      _.each(files, function(fileName) {
-        var id = fileName.split('.txt')[0];
-        data.push({id: id, text: id});
-      });
-      callback(null, data);
-    }
-  });
+  // fs.readdir(exports.dataDir, function(err, files) {
+  //   if (err) {
+  //     callback(err);
+  //   } else {
+  //     _.each(files, function(fileName) {
+  //       var id = fileName.split('.txt')[0];
+  //       data.push({id: id, text: id});
+  //     });
+  //     callback(null, data);
+  //   }
+  // });
   //==============below is the Promise code=======================
   //fs.readdirAsync to get all file names => ['0001.txt',...]
   //.then make an array of file links using path.join => dirname + filename => [../0001.txt, ...]
@@ -58,7 +62,23 @@ exports.readAll = (callback) => {
   //Promise.all of the fs.readFile asyncs
   //after each fs.readFile, push file content string into data
   //.then callback the data array
-
+  return readdirAsync(exports.dataDir)
+    .then(function(fileNames) {
+      return Promise.all(fileNames.map(function(fileName) {
+        var filePath = path.join(exports.dataDir, fileName); //path: .././0001.txt
+        var id = fileName.split('.txt')[0]; //id: 0001
+        return readFileAsync(filePath, 'utf8') //returns body of the file in a string: 'todo 1'
+          .then(function(text) {
+            data.push({id: id, text: text});
+          });
+      }));
+    })
+    .then(function() {
+      callback(null, data);
+    })
+    .catch(function(err) {
+      console.log('read all error: ' + err);
+    });
 };
 
 exports.readOne = (id, callback) => {
