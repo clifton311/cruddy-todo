@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const sprintf = require('sprintf-js').sprintf;
+const Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
 var counter = 0;
 
@@ -16,24 +18,49 @@ const zeroPaddedNumber = (num) => {
 };
 
 const readCounter = (callback) => {
-  fs.readFile(exports.counterFile, (err, fileData) => {
-    if (err) {
-      callback(null, 0);
-    } else {
-      callback(null, Number(fileData));
-    }
-  });
+  const textPath = exports.counterFile;
+  //=============below is the nodestyle callback code=============
+  // fs.readFile(exports.counterFile, (err, fileData) => {
+  //   if (err) {
+  //     callback(null, 0);
+  //   } else {
+  //     callback(null, Number(fileData));
+  //   }
+  // });
+  //==============below is the Promise code=======================
+  //return fs.readfileAsync pass in textPath
+  //if sucessful, call then() method and pass in Number(fileData)
+  //if not, catch()
+  return fs.readFileAsync(textPath)
+    .then(function (fileData) {
+      callback(Number(fileData));
+    })
+    .catch(function (err) {
+      callback(0);
+    });
 };
 
 const writeCounter = (count, callback) => {
   var counterString = zeroPaddedNumber(count);
-  fs.writeFile(exports.counterFile, counterString, (err) => {
-    if (err) {
-      throw ('error writing counter');
-    } else {
-      callback(null, counterString);
-    }
-  });
+  const textPath = exports.counterFile;
+  //=============below is the nodestyle callback code=============
+  // fs.writeFile(exports.counterFile, counterString, (err) => {
+  //   if (err) {
+  //     throw ('error writing counter');
+  //   } else {
+  //     callback(null, counterString);
+  //   }
+  // });
+  //==============below is the Promise code=======================
+  //return fs.writeFileAsync promise
+  // then callback on the counterString
+  return fs.writeFileAsync(textPath, counterString)
+    .then(function() {
+      callback(counterString);
+    })
+    .catch(function(err) {
+      callback(err);
+    });
 };
 
 // Public API - Fix this function //////////////////////////////////////////////
@@ -44,21 +71,40 @@ const writeCounter = (count, callback) => {
 // };
 
 exports.getNextUniqueId = (callback) => {
-  readCounter(function(err, counterNum) {
-    if (err) {
+  //=============below is the nodestyle callback code=============
+  // readCounter(function(err, counterNum) {
+  //   if (err) {
+  //     callback(null, 0);
+  //   } else {
+  //     //counterNum = counterNum++;
+  //     writeCounter(counterNum + 1, function(err, counterString) {
+  //       if (err) {
+  //         throw ('error writing counter');
+  //       } else {
+  //         //zeroPaddedNumber(counterNum+1);
+  //         callback(null, counterString);
+  //       }
+  //     }); 
+  //   }
+  // });
+  //==============below is the Promise code=======================
+  //return readCounter
+  //.then()
+  //return writeCounter
+  //.then(counterNum+1)
+  //.catch()
+  return readCounter()
+    .then( function (counterNum) {
+      console.log('counterNum is ============>' + counterNum);
+      return writeCounter(counterNum + 1);
+    })
+    .then(function (counterString) {
+      console.log('counterString is ===============>' + counterString);
+      callback(counterString);
+    })
+    .catch(function (err) {
       callback(null, 0);
-    } else {
-      //counterNum = counterNum++;
-      writeCounter(counterNum+1, function(err, counterString) {
-        if (err) {
-          throw ('error writing counter');
-        } else {
-          //zeroPaddedNumber(counterNum+1);
-          callback(null, counterString);
-        }
-      }); 
-    }
-  });
+    });
 };
 
 

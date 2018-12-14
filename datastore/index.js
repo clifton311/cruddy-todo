@@ -32,26 +32,26 @@ exports.create = (text, callback) => {
   // });
   
   //========================== exports.create Using Promises=========================
-    return getNextUniqueIdAsync()
-      .then(function (counterString) {
-        var textPath = path.join(exports.dataDir, counterString + '.txt');
-        return new Promise(function (resolve, reject) {
-          fs.writeFile(textPath, text, (err) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve({id : counterString});
-            }
-          });
+  return getNextUniqueIdAsync()
+    .then(function (counterString) {
+      var textPath = path.join(exports.dataDir, counterString + '.txt');
+      return new Promise(function (resolve, reject) {
+        fs.writeFile(textPath, text, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({id: counterString});
+          }
         });
-      })
-      .then(function (textObj) {
-        textObj.text = text;
-        callback(null, textObj);
-      })
-      .catch(function (err) {
-        console.log( 'Error ' + err);
       });
+    })
+    .then(function (textObj) {
+      textObj.text = text;
+      callback(null, textObj);
+    })
+    .catch(function (err) {
+      console.log( 'Error ' + err);
+    });
 
   //return counter
   //.then(callback) 
@@ -124,7 +124,7 @@ exports.readOne = (id, callback) => {
   //when successful, callback(null, { id, text });
 
   var textPath = path.join(exports.dataDir, id + '.txt');
-//=============below is the nodestyle callback code=============
+  //=============below is the nodestyle callback code=============
   // fs.readFile(textPath, 'utf8' , function (err, text){
   //   if (err) {
   //     callback(err);
@@ -133,18 +133,18 @@ exports.readOne = (id, callback) => {
   //   }
   // });
 
-//==============below is the Promise code=======================
-//use fs.readfileAsync to create the promise
-//then method to callback
-//catch the error
+  //==============below is the Promise code=======================
+  //use fs.readfileAsync to create the promise
+  //then method to callback
+  //catch the error
   return fs.readFileAsync(textPath, 'utf8')
-    .then(function (text){
+    .then(function (text) {
       callback(null, {id, text});
     })
-    .catch(function (err){
+    .catch(function (err) {
       callback(err);
     });
-  };
+};
 
 exports.update = (id, text, callback) => {
   // var item = items[id];
@@ -222,23 +222,23 @@ exports.delete = (id, callback) => {
   //   }
   // });
   
-//==============below is the Promise code=======================
-//return fs.statAsync promise and pass in textPath
-//if successful return a statsObj,
-//call the then() method 
-//return the fs.unlinkAsync promise
-//else catch the error
+  //==============below is the Promise code=======================
+  //return fs.statAsync promise and pass in textPath
+  //if successful return a statsObj,
+  //call the then() method 
+  //return the fs.unlinkAsync promise
+  //else catch the error
 
-return fs.statAsync(textPath)
-  .then(function (statsObj){
-    return fs.unlinkAsync (textPath);
-  })
-  .then(function(){
-    callback();
-  })
-  .catch(function (err){
-    callback(err);
-  });
+  return fs.statAsync(textPath)
+    .then(function (statsObj) {
+      return fs.unlinkAsync (textPath);
+    })
+    .then(function() {
+      callback();
+    })
+    .catch(function (err) {
+      callback(err);
+    });
 };
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
