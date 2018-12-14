@@ -34,7 +34,6 @@ exports.create = (text, callback) => {
   //========================== exports.create Using Promises=========================
     return getNextUniqueIdAsync()
       .then(function (counterString) {
-      
         var textPath = path.join(exports.dataDir, counterString + '.txt');
         return new Promise(function (resolve, reject) {
           fs.writeFile(textPath, text, (err) => {
@@ -123,15 +122,29 @@ exports.readOne = (id, callback) => {
   //fs.readFile(path, callback)
   //handle when path doesn't exist
   //when successful, callback(null, { id, text });
+
   var textPath = path.join(exports.dataDir, id + '.txt');
-  fs.readFile(textPath, 'utf8' , function (err, text){
-    if (err) {
+//=============below is the nodestyle callback code=============
+  // fs.readFile(textPath, 'utf8' , function (err, text){
+  //   if (err) {
+  //     callback(err);
+  //   } else {
+  //     callback(null,{id, text});
+  //   }
+  // });
+
+//==============below is the Promise code=======================
+//use fs.readfileAsync to create the promise
+//then method to callback
+//catch the error
+  return fs.readFileAsync(textPath, 'utf8')
+    .then(function (text){
+      callback(null, {id, text});
+    })
+    .catch(function (err){
       callback(err);
-    } else {
-      callback(null,{id, text});
-    }
-  });
-};
+    });
+  };
 
 exports.update = (id, text, callback) => {
   // var item = items[id];
@@ -146,19 +159,38 @@ exports.update = (id, text, callback) => {
   //check if path exists, only writeFile when path exists
 
   var textPath = path.join(exports.dataDir, id + '.txt');
-  fs.stat(textPath, function(err, stats) {
-    if (err) {
+  //=============below is the nodestyle callback code=============
+  //fs.stat checks if the path exists
+
+  // fs.stat(textPath, function(err, stats) {
+  //   if (err) {
+  //     callback(err);
+  //   } else {
+  //     fs.writeFile( textPath, text, function(err){
+  //       if (err) {
+  //         callback(err);
+  //       } else {
+  //         callback(null, {id, text});
+  //       }
+  //     });
+  //   }
+  // });
+  //==============below is the Promise code=======================
+  //return fs.statAsync promise
+  //if successful, fs.stat returns a stats obj (we don't need to pass stats)
+  //.then return fs.writeFileAsync promise
+  //.then call back on {id, text}
+  return fs.statAsync(textPath)
+    .then(function() {
+      return fs.writeFileAsync(textPath, text);
+    })
+    .then(function() {
+      callback({id, text});
+    })
+    .catch(function(err) {
       callback(err);
-    } else {
-      fs.writeFile( textPath, text, function(err){
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, {id, text});
-        }
-      });
-    }
-  });
+    });
+
 };
 
 exports.delete = (id, callback) => {
@@ -174,21 +206,40 @@ exports.delete = (id, callback) => {
   //use the fs.unlink method - Asynchronously removes a file or symbolic link
   //check if path exists, only unlink when path exists
   var textPath = path.join(exports.dataDir, id + '.txt');
-  fs.stat(textPath, function (err, stats) {
-    if (err)  {
-      callback(err);
-    } else {
-      fs.unlink(textPath, function (err){
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, stats);
-        }
-      });  
-    }
+
+  //=============below is the nodestyle callback code=============
+  // fs.stat(textPath, function (err, stats) {
+  //   if (err)  {
+  //     callback(err);
+  //   } else {
+  //     fs.unlink(textPath, function (err){
+  //       if (err) {
+  //         callback(err);
+  //       } else {
+  //         callback(null, stats);
+  //       }
+  //     });  
+  //   }
+  // });
+  
+//==============below is the Promise code=======================
+//return fs.statAsync promise and pass in textPath
+//if successful return a statsObj,
+//call the then() method 
+//return the fs.unlinkAsync promise
+//else catch the error
+
+return fs.statAsync(textPath)
+  .then(function (statsObj){
+    return fs.unlinkAsync (textPath);
+  })
+  .then(function(){
+    callback();
+  })
+  .catch(function (err){
+    callback(err);
   });
 };
-
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
 exports.dataDir = path.join(__dirname, 'data');
